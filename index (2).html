@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lua Script Editor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/dracula.min.css">
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background-color: #282a36; /* Background color matching the editor theme */
+            color: #f8f8f2; /* Text color */
+            font-family: Arial, sans-serif;
+            position: relative;
+        }
+        .editor {
+            height: 100%; /* Full screen height */
+            border: none; /* No border */
+        }
+        #forbidden {
+            position: absolute;
+            top: 10px;
+            right: 10px; /* Align to the right */
+            background: rgba(40, 42, 54, 0.9); /* Dark background matching the theme */
+            color: #ff79c6; /* Pink text color for visibility */
+            padding: 5px;
+            border-radius: 5px;
+            font-size: 18px; /* Adjust font size */
+            font-weight: bold;
+            z-index: 10; /* Ensure it stays above the editor */
+        }
+        /* Increase the font size for the CodeMirror editor */
+        .CodeMirror {
+            font-size: 16px; /* Set your desired font size here */
+            height: 100vh; /* Full height for the editor */
+        }
+    </style>
+</head>
+<body>
+    <div id="forbidden">Forbidden Table</div>
+    <textarea id="editor" class="editor"></textarea>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/lua/lua.min.js"></script>
+    <script>
+        const editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
+            mode: "lua",
+            lineNumbers: true,
+            theme: "dracula",
+            autoCloseBrackets: true,
+            lineWrapping: true,
+            viewportMargin: Infinity // Make the editor height extend to the viewport
+        });
+
+        // Load the script if a link with a script ID is provided
+        const urlParams = new URLSearchParams(window.location.search);
+        const scriptId = urlParams.get('id');
+        if (scriptId) {
+            const savedScript = localStorage.getItem(scriptId);
+            if (savedScript) {
+                editor.setValue(savedScript);
+            } else {
+                alert('Script not found!');
+            }
+        }
+
+        // Save script on Ctrl + S
+        document.addEventListener('keydown', function(event) {
+            if (event.ctrlKey && event.key === 's') {
+                event.preventDefault(); // Prevent the default save action
+                const script = editor.getValue();
+                const id = 'script_' + Date.now(); // Generate a unique ID based on timestamp
+                localStorage.setItem(id, script); // Save the script to local storage
+
+                // Create the link to access the saved script
+                const link = `${window.location.origin}/index.html?id=${id}`;
+                // Copy the link to the clipboard
+                navigator.clipboard.writeText(link).then(() => {
+                    alert(`Your script is saved! Access it here: ${link}\nThe link has been copied to your clipboard.`);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
